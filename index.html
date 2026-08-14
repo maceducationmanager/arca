@@ -138,7 +138,7 @@
 
     <script>
         // ==================== CONFIGURATION ====================
-        const autoLoadPDF = 'https://arca.mac.edu.au/pluginfile.php/4548/mod_resource/content/1/Assessment%20Guide%202026%20-%20Referencing.pdf';
+        const pdfUrl = 'https://arca.mac.edu.au/pluginfile.php/4548/mod_resource/content/1/Assessment%20Guide%202026%20-%20Referencing.pdf';
         const flipbookWidth = 600;
         const flipbookHeight = 800;
         // =======================================================
@@ -149,13 +149,13 @@
         let totalPages = 0;
 
         // Initialize PDF.js worker
-        if (typeof pdfjsLib !== 'undefined') {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         // Load PDF from URL
-        async function loadPDF(pdfSource) {
+        async function loadPDF() {
             try {
+                console.log('Loading PDF from:', pdfUrl);
+
                 if (pageFlip) {
                     pageFlip.destroy();
                     pageFlip = null;
@@ -163,12 +163,16 @@
 
                 document.getElementById('flipbook').innerHTML = '<div class="loading">Loading PDF...</div>';
 
-                pdfDoc = await pdfjsLib.getDocument(pdfSource).promise;
+                // Load the PDF document
+                pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
                 totalPages = pdfDoc.numPages;
                 document.getElementById('totalPages').textContent = totalPages;
 
+                console.log('PDF loaded. Total pages:', totalPages);
+
                 document.getElementById('flipbook').innerHTML = '';
 
+                // Create PageFlip instance
                 pageFlip = new St.PageFlip(document.getElementById('flipbook'), {
                     width: flipbookWidth,
                     height: flipbookHeight,
@@ -178,6 +182,7 @@
                     mobileScrollSupport: false
                 });
 
+                // Load all pages
                 const pages = [];
                 for (let i = 1; i <= totalPages; i++) {
                     const page = await pdfDoc.getPage(i);
@@ -201,6 +206,7 @@
                 }
 
                 pageFlip.loadFromHTML(pages);
+                console.log('Flipbook created successfully');
 
                 pageFlip.on('flip', (e) => {
                     currentPage = e.data + 1;
@@ -248,11 +254,7 @@
         document.getElementById('lastBtn').addEventListener('click', goToLastPage);
 
         // Initialize on page load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadPDF);
-        } else {
-            loadPDF();
-        }
+        window.addEventListener('load', loadPDF);
     </script>
 </body>
 </html>
