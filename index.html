@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Flipbook</title>
 
-    <!-- Load libraries from CDN (works in SCORM) -->
+    <!-- Load libraries from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
 
@@ -111,69 +111,6 @@
             margin: 20px;
         }
 
-        .file-picker-container {
-            background: #fbf7eb;
-            border-radius: 10px;
-            padding: 30px;
-            margin: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .file-picker-container h2 {
-            color: #52252e;
-            margin-bottom: 20px;
-        }
-
-        .file-input-wrapper {
-            margin: 20px 0;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .custom-file-upload {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #52252e;
-            color: #fbf7eb;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-
-        .custom-file-upload:hover {
-            background: #52252e;
-        }
-
-        .file-name {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #52252e;
-        }
-
-        .instructions {
-            background: #fbf7eb;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .instructions h2 {
-            color: #52252e;
-            margin-bottom: 15px;
-        }
-
-        .instructions ol {
-            margin-left: 20px;
-            line-height: 1.8;
-        }
-
         .hidden {
             display: none;
         }
@@ -181,19 +118,17 @@
 </head>
 <body>
 
-
-    <!-- Flipbook (hidden until PDF is loaded) -->
-    <div id="flipbookSection" class="flipbook-container hidden">
+    <!-- Flipbook section -->
+    <div id="flipbookSection" class="flipbook-container">
         <div id="flipbook" class="flip-book">
             <div class="loading">Loading PDF...</div>
         </div>
 
         <div class="controls">
-            <button id="prevBtn" onclick="goToPrevPage()">Previous</button>
-            <button id="nextBtn" onclick="goToNextPage()">Next</button>
-            <button id="firstBtn" onclick="goToFirstPage()">First</button>
-            <button id="lastBtn" onclick="goToLastPage()">Last</button>
-            <button id="newFileBtn" onclick="loadNewFile()">New File</button>
+            <button id="prevBtn">Previous</button>
+            <button id="nextBtn">Next</button>
+            <button id="firstBtn">First</button>
+            <button id="lastBtn">Last</button>
         </div>
 
         <div class="page-info">
@@ -201,19 +136,10 @@
         </div>
     </div>
 
-
     <script>
         // ==================== CONFIGURATION ====================
-        // Set this to a PDF URL to auto-load on page start
-        // For SCORM, you can also upload PDFs to the same folder
-        // Examples:
-        //   const autoLoadPDF = 'mybook.pdf';
-        //   const autoLoadPDF = 'https://example.com/file.pdf';
-        //   const autoLoadPDF = null;  // Show file picker instead
-        const autoLoadPDF = 'referencing.pdf';
-
-        // Flipbook dimensions (adjust based on your PDF aspect ratio)
-        const flipbookWidth = 1000;
+        const autoLoadPDF = 'https://arca.mac.edu.au/pluginfile.php/4548/mod_resource/content/1/Assessment%20Guide%202026%20-%20Referencing.pdf';
+        const flipbookWidth = 600;
         const flipbookHeight = 800;
         // =======================================================
 
@@ -227,37 +153,9 @@
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
 
-        // File input handler
-        document.getElementById('pdfInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (file && file.type === 'application/pdf') {
-                document.getElementById('fileName').textContent = 'Selected: ' + file.name;
-                await loadPDFFromFile(file);
-            } else {
-                alert('Please select a valid PDF file.');
-            }
-        });
-
-        // Load PDF from file input
-        async function loadPDFFromFile(file) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-
-                // Show flipbook section, hide file picker
-                document.getElementById('filePickerSection').classList.add('hidden');
-                document.getElementById('flipbookSection').classList.remove('hidden');
-
-                await loadPDF(arrayBuffer);
-            } catch (error) {
-                console.error('Error loading PDF from file:', error);
-                showError('Error loading PDF file. Please try another file.');
-            }
-        }
-
-        // Load PDF from URL or ArrayBuffer
+        // Load PDF from URL
         async function loadPDF(pdfSource) {
             try {
-                // Clear any existing flipbook
                 if (pageFlip) {
                     pageFlip.destroy();
                     pageFlip = null;
@@ -265,20 +163,12 @@
 
                 document.getElementById('flipbook').innerHTML = '<div class="loading">Loading PDF...</div>';
 
-                // Load the PDF document
-                if (pdfSource instanceof ArrayBuffer) {
-                    pdfDoc = await pdfjsLib.getDocument({ data: pdfSource }).promise;
-                } else {
-                    pdfDoc = await pdfjsLib.getDocument(pdfSource).promise;
-                }
-
+                pdfDoc = await pdfjsLib.getDocument(pdfSource).promise;
                 totalPages = pdfDoc.numPages;
                 document.getElementById('totalPages').textContent = totalPages;
 
-                // Clear loading message
                 document.getElementById('flipbook').innerHTML = '';
 
-                // Create PageFlip instance
                 pageFlip = new St.PageFlip(document.getElementById('flipbook'), {
                     width: flipbookWidth,
                     height: flipbookHeight,
@@ -288,39 +178,30 @@
                     mobileScrollSupport: false
                 });
 
-                // Load all pages
                 const pages = [];
                 for (let i = 1; i <= totalPages; i++) {
-                    document.getElementById('currentPage').textContent = i;
-
                     const page = await pdfDoc.getPage(i);
                     const viewport = page.getViewport({ scale: 1.5 });
 
-                    // Create canvas for this page
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
 
-                    // Render PDF page to canvas
                     await page.render({
                         canvasContext: context,
                         viewport: viewport
                     }).promise;
 
-                    // Create page element
                     const pageDiv = document.createElement('div');
                     pageDiv.className = 'page';
                     pageDiv.innerHTML = '<div class="page-content"></div>';
                     pageDiv.querySelector('.page-content').appendChild(canvas);
-
                     pages.push(pageDiv);
                 }
 
-                // Add pages to flipbook
                 pageFlip.loadFromHTML(pages);
 
-                // Update current page on flip
                 pageFlip.on('flip', (e) => {
                     currentPage = e.data + 1;
                     document.getElementById('currentPage').textContent = currentPage;
@@ -331,55 +212,26 @@
 
             } catch (error) {
                 console.error('Error loading PDF:', error);
-                showError('Error loading PDF. Please check the file and try again.<br><br>Details: ' + error.message);
+                document.getElementById('flipbook').innerHTML = 
+                    '<div class="error-message">Error loading PDF. Details: ' + error.message + '</div>';
             }
-        }
-
-        // Show error message
-        function showError(message) {
-            document.getElementById('flipbook').innerHTML = 
-                '<div class="error-message">' + message + '</div>';
-        }
-
-        // Load new file
-        function loadNewFile() {
-            if (pageFlip) {
-                pageFlip.destroy();
-                pageFlip = null;
-            }
-            pdfDoc = null;
-            currentPage = 1;
-            totalPages = 0;
-
-            document.getElementById('flipbookSection').classList.add('hidden');
-            document.getElementById('filePickerSection').classList.remove('hidden');
-            document.getElementById('pdfInput').value = '';
-            document.getElementById('fileName').textContent = '';
         }
 
         // Navigation functions
         function goToPrevPage() {
-            if (pageFlip) {
-                pageFlip.flipPrev();
-            }
+            if (pageFlip) pageFlip.flipPrev();
         }
 
         function goToNextPage() {
-            if (pageFlip) {
-                pageFlip.flipNext();
-            }
+            if (pageFlip) pageFlip.flipNext();
         }
 
         function goToFirstPage() {
-            if (pageFlip) {
-                pageFlip.flip(0);
-            }
+            if (pageFlip) pageFlip.flip(0);
         }
 
         function goToLastPage() {
-            if (pageFlip) {
-                pageFlip.flip(totalPages - 1);
-            }
+            if (pageFlip) pageFlip.flip(totalPages - 1);
         }
 
         function updateButtons() {
@@ -389,15 +241,18 @@
             document.getElementById('lastBtn').disabled = currentPage >= totalPages;
         }
 
+        // Add event listeners to buttons
+        document.getElementById('prevBtn').addEventListener('click', goToPrevPage);
+        document.getElementById('nextBtn').addEventListener('click', goToNextPage);
+        document.getElementById('firstBtn').addEventListener('click', goToFirstPage);
+        document.getElementById('lastBtn').addEventListener('click', goToLastPage);
+
         // Initialize on page load
-        window.addEventListener('load', function() {
-            if (autoLoadPDF) {
-                // Auto-load PDF if URL is provided
-                document.getElementById('filePickerSection').classList.add('hidden');
-                document.getElementById('flipbookSection').classList.remove('hidden');
-                loadPDF(autoLoadPDF);
-            }
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadPDF);
+        } else {
+            loadPDF();
+        }
     </script>
 </body>
 </html>
