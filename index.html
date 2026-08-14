@@ -33,11 +33,12 @@
             padding: 20px;
             margin: 20px 0;
             width: 100%;
-            max-width: 900px;
+            max-width: 100%;
         }
 
         .flip-book {
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 100%;
         }
 
         .page {
@@ -139,8 +140,8 @@
     <script>
         // ==================== CONFIGURATION ====================
         const pdfUrl = 'referencing.pdf';
-        const flipbookWidth = 600;
-        const flipbookHeight = 800;
+        const flipbookWidth = 500;
+        const flipbookHeight = 700;
         // =======================================================
 
         let pdfDoc = null;
@@ -163,7 +164,6 @@
 
                 document.getElementById('flipbook').innerHTML = '<div class="loading">Loading PDF...</div>';
 
-                // Load the PDF document
                 pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
                 totalPages = pdfDoc.numPages;
                 document.getElementById('totalPages').textContent = totalPages;
@@ -172,7 +172,6 @@
 
                 document.getElementById('flipbook').innerHTML = '';
 
-                // Create PageFlip instance
                 pageFlip = new St.PageFlip(document.getElementById('flipbook'), {
                     width: flipbookWidth,
                     height: flipbookHeight,
@@ -182,7 +181,6 @@
                     mobileScrollSupport: false
                 });
 
-                // Load all pages
                 const pages = [];
                 for (let i = 1; i <= totalPages; i++) {
                     const page = await pdfDoc.getPage(i);
@@ -223,7 +221,6 @@
             }
         }
 
-        // Navigation functions
         function goToPrevPage() {
             if (pageFlip) pageFlip.flipPrev();
         }
@@ -247,13 +244,11 @@
             document.getElementById('lastBtn').disabled = currentPage >= totalPages;
         }
 
-        // Add event listeners to buttons
         document.getElementById('prevBtn').addEventListener('click', goToPrevPage);
         document.getElementById('nextBtn').addEventListener('click', goToNextPage);
         document.getElementById('firstBtn').addEventListener('click', goToFirstPage);
         document.getElementById('lastBtn').addEventListener('click', goToLastPage);
 
-        // Initialize on page load
         window.addEventListener('load', loadPDF);
     </script>
 </body>
